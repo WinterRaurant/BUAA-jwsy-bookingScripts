@@ -1,5 +1,5 @@
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 
 import book
@@ -64,6 +64,8 @@ def func():
                 appid = ret[1]
                 getPwd.get_infos(appid, cookies)
                 return True
+    
+    print('无空闲实验室，请修改预约时间后重试')
 
 def split_string_to_dict(input_str):
     result_dict = {}
@@ -74,10 +76,43 @@ def split_string_to_dict(input_str):
     
     return result_dict
 
-if __name__ == '__main__':
-    start_time = int(input('开始时间：'))
-    end_time = int(input('结束时间：'))
+def is_valid_date(date_str):
+    try:
+        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError:
+        return False
+    
+    today = datetime.today()
+    future_date = today + timedelta(days=8)
+    
+    if today <= date_obj <= future_date:
+        return True
+    else:
+        return False
+
+def get_input():
+    global formatted_time, cookies, start_time, end_time
+    while True:
+        date = (input('日期（mm-dd）：'))
+        if date == '':
+            break
+        elif is_valid_date(f'{current_time.year}-{date}'):
+            formatted_time = f'{current_time.year}-{date}'
+            break
+        print('请检查输入格式')
+      
+    while True:
+        start_time = int(input('开始时间：'))
+        end_time = int(input('结束时间：'))
+        if 1 <= end_time - start_time <= 4:
+            break
+        print('预约时段不合法')
+
+    print(f"{'*' * 30}即将预约{formatted_time}的{start_time}:00至{end_time}:00{'*' * 30}")
     cookies = split_string_to_dict(input('cookies：'))
+
+if __name__ == '__main__':
+    get_input()
     flag = False
     while retry < 16:
         flag = func()
